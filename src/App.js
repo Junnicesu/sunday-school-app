@@ -14,6 +14,8 @@ function App() {
         <Route path="/parent/sign" element={<SignForm />} />
         <Route path="/teacher/login" element={<TeacherLogin />} />
         <Route path="/teacher/attendance" element={<Attendance />} />
+        <Route path="/" element={<h1>Welcome to Sunday School App</h1>} /> {/* Root route */}
+        <Route path="*" element={<h1>404 - Page Not Found</h1>} /> {/* Fallback */}
       </Routes>
     </Router>
   );
