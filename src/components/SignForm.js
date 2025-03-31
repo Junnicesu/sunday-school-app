@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import QrReader from 'react-qr-reader';
+import { QrReader } from 'react-qr-reader';
 import axios from 'axios';
 
 const SignForm = () => {
