@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 const ParentRegister = () => {
@@ -6,16 +6,34 @@ const ParentRegister = () => {
   const [caregiverContact, setCaregiverContact] = useState('');
   const [kidName, setKidName] = useState('');
   const [familyCode, setFamilyCode] = useState('');
+  const [rooms, setRooms] = useState([]);
+  const [selectedRoom, setSelectedRoom] = useState('');
+
+  useEffect(() => {
+    const fetchRooms = async () => {
+      try {
+        const response = await axios.get('http://localhost:3000/rooms');
+        setRooms(response.data);
+      } catch (error) {
+        console.error('Failed to fetch rooms:', error);
+      }
+    };
+    fetchRooms();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:3000/register', {
+      const data = {
         caregiver_name: caregiverName,
         caregiver_contact: caregiverContact,
         kid_name: kidName,
         family_code: familyCode,
-      });
+      };
+      if (!familyCode) {
+        data.room_id = selectedRoom;
+      }
+      const response = await axios.post('http://localhost:3000/register', data);
       if (response.data.family_code) {
         alert(`Registration successful! Share this family code with other caregivers: ${response.data.family_code}`);
       } else {
@@ -25,6 +43,7 @@ const ParentRegister = () => {
       setCaregiverContact('');
       setKidName('');
       setFamilyCode('');
+      setSelectedRoom('');
     } catch (error) {
       alert(error.response?.data?.error || 'Registration failed');
     }
@@ -70,6 +89,23 @@ const ParentRegister = () => {
             disabled={kidName !== ''}
           />
         </div>
+        {!familyCode && (
+          <div>
+            <label>Room:</label>
+            <select
+              value={selectedRoom}
+              onChange={(e) => setSelectedRoom(e.target.value)}
+              required
+            >
+              <option value="">Select a room</option>
+              {rooms.map((room) => (
+                <option key={room.id} value={room.id}>
+                  {room.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
         <button type="submit">Register</button>
       </form>
     </div>
