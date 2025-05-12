@@ -5,49 +5,70 @@ const ParentRegister = () => {
   const [caregiverName, setCaregiverName] = useState('');
   const [caregiverContact, setCaregiverContact] = useState('');
   const [kidName, setKidName] = useState('');
+  const [roomId, setRoomId] = useState('');
   const [familyCode, setFamilyCode] = useState('');
   const [rooms, setRooms] = useState([]);
-  const [selectedRoom, setSelectedRoom] = useState('');
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [loading, setLoading] = useState(true);
 
+  // Load caregiver data from localStorage on component mount
   useEffect(() => {
-    const fetchRooms = async () => {
-      try {
-        const response = await axios.get('http://localhost:3000/rooms');
+    const storedCaregiverName = localStorage.getItem('caregiver_name');
+    const storedCaregiverContact = localStorage.getItem('caregiver_contact');
+    if (storedCaregiverName) {
+      setCaregiverName(storedCaregiverName);
+    }
+    if (storedCaregiverContact) {
+      setCaregiverContact(storedCaregiverContact);
+    }
+
+    // Fetch rooms from backend
+    axios
+      .get('http://localhost:3000/rooms')
+      .then((response) => {
         setRooms(response.data);
-      } catch (error) {
-        console.error('Failed to fetch rooms:', error);
-      }
-    };
-    fetchRooms();
+        setLoading(false);
+      })
+      .catch((error) => {
+        setError(error.response?.data?.error || 'Failed to fetch rooms');
+        setLoading(false);
+      });
   }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+    setSuccess('');
+
     try {
-      const data = {
+      const response = await axios.post('http://localhost:3000/register', {
         caregiver_name: caregiverName,
         caregiver_contact: caregiverContact,
         kid_name: kidName,
+        room_id: roomId,
         family_code: familyCode,
-      };
-      if (!familyCode) {
-        data.room_id = selectedRoom;
-      }
-      const response = await axios.post('http://localhost:3000/register', data);
+      });
+
+      // Save caregiver info to localStorage
+      localStorage.setItem('caregiver_contact', caregiverContact);
+      localStorage.setItem('caregiver_name', caregiverName);
       if (response.data.family_code) {
-        alert(`Registration successful! Share this family code with other caregivers: ${response.data.family_code}`);
-      } else {
-        alert('Successfully linked to existing kid!');
+        localStorage.setItem('family_code', response.data.family_code);
       }
-      setCaregiverName('');
-      setCaregiverContact('');
+
+      setSuccess(response.data.message || 'Registration successful!');
+      // Reset kid-related fields but keep caregiver info
       setKidName('');
+      setRoomId('');
       setFamilyCode('');
-      setSelectedRoom('');
-    } catch (error) {
-      alert(error.response?.data?.error || 'Registration failed');
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to register');
     }
   };
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
 
   return (
     <div>
@@ -63,7 +84,7 @@ const ParentRegister = () => {
           />
         </div>
         <div>
-          <label>Contact Number:</label>
+          <label>Caregiver Contact:</label>
           <input
             type="text"
             value={caregiverContact}
@@ -72,13 +93,27 @@ const ParentRegister = () => {
           />
         </div>
         <div>
-          <label>Kid Name (leave blank if linking):</label>
+          <label>Kid Name:</label>
           <input
             type="text"
             value={kidName}
             onChange={(e) => setKidName(e.target.value)}
-            disabled={familyCode !== ''}
           />
+        </div>
+        <div>
+          <label>Room:</label>
+          <select
+            value={roomId}
+            onChange={(e) => setRoomId(e.target.value)}
+            required
+          >
+            <option value="">Select a room</option>
+            {rooms.map((room) => (
+              <option key={room.id} value={room.id}>
+                {room.name}
+              </option>
+            ))}
+          </select>
         </div>
         <div>
           <label>Family Code (if linking to existing kid):</label>
@@ -86,28 +121,12 @@ const ParentRegister = () => {
             type="text"
             value={familyCode}
             onChange={(e) => setFamilyCode(e.target.value)}
-            disabled={kidName !== ''}
           />
         </div>
-        {!familyCode && (
-          <div>
-            <label>Room:</label>
-            <select
-              value={selectedRoom}
-              onChange={(e) => setSelectedRoom(e.target.value)}
-              required
-            >
-              <option value="">Select a room</option>
-              {rooms.map((room) => (
-                <option key={room.id} value={room.id}>
-                  {room.name}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
         <button type="submit">Register</button>
       </form>
+      {success && <p style={{ color: 'green' }}>{success}</p>}
+      {error && <p style={{ color: 'red' }}>{error}</p>}
     </div>
   );
 };

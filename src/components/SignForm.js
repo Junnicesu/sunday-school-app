@@ -1,48 +1,104 @@
-import React, { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { QrReader } from 'react-qr-reader';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 const SignForm = () => {
-  const location = useLocation();
   const navigate = useNavigate();
-  const kidId = new URLSearchParams(location.search).get('kid_id');
+  const caregiverContact = localStorage.getItem('caregiver_contact');
+  const [roomId, setRoomId] = useState('');
+  const [kids, setKids] = useState([]);
+  const [selectedKids, setSelectedKids] = useState([]);
   const [action, setAction] = useState('in');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
 
-  const handleScan = async (data) => {
-    if (data) {
-      const roomId = data.split(':')[1];
-      try {
-        await axios.post('http://localhost:3000/sign', { kid_id: kidId, room_id: roomId, action });
-        alert(`Kid successfully signed ${action === 'in' ? 'in' : 'out'}`);
-        navigate('/parent/dashboard');
-      } catch (error) {
-        alert(error.response?.data?.error || 'Failed to record action');
-      }
+  useEffect(() => {
+    if (!caregiverContact) {
+      alert('Please register first.');
+      navigate('/parent/register');
+      return;
+    }
+
+    // Fetch rooms and kids (example)
+    axios
+      .get('http://localhost:3000/kids', {
+        params: { contact_number: caregiverContact },
+      })
+      .then((response) => {
+        setKids(response.data);
+        setLoading(false);
+      })
+      .catch((error) => {
+        setError(error.response?.data?.error || 'Failed to fetch kids');
+        setLoading(false);
+      });
+  }, [caregiverContact, navigate]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!roomId || selectedKids.length === 0) {
+      setError('Please select a room and at least one kid.');
+      return;
+    }
+
+    try {
+      const response = await axios.post('http://localhost:3000/sign', {
+        caregiver_contact: caregiverContact,
+        room_id: roomId,
+        kid_ids: selectedKids,
+        action,
+      });
+      alert(response.data.message);
+      setSelectedKids([]);
+    } catch (error) {
+      setError(error.response?.data?.error || 'Failed to sign in/out');
     }
   };
 
-  const handleError = (err) => {
-    console.error(err);
-    alert('Error accessing camera');
-  };
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
 
   return (
     <div>
-      <h2>Sign Kid {action === 'in' ? 'In' : 'Out'}</h2>
-      <div>
-        <label>Action:</label>
-        <select value={action} onChange={(e) => setAction(e.target.value)}>
-          <option value="in">Sign In</option>
-          <option value="out">Sign Out</option>
-        </select>
-      </div>
-      <QrReader
-        delay={300}
-        onError={handleError}
-        onScan={handleScan}
-        style={{ width: '100%', maxWidth: '300px' }}
-      />
+      <h2>Sign In/Out</h2>
+      <form onSubmit={handleSubmit}>
+        <div>
+          <label>Room ID:</label>
+          <input
+            type="text"
+            value={roomId}
+            onChange={(e) => setRoomId(e.target.value)}
+            required
+          />
+        </div>
+        <div>
+          <label>Kids:</label>
+          {kids.map((kid) => (
+            <div key={kid.id}>
+              <input
+                type="checkbox"
+                value={kid.id}
+                onChange={(e) => {
+                  if (e.target.checked) {
+                    setSelectedKids([...selectedKids, kid.id]);
+                  } else {
+                    setSelectedKids(selectedKids.filter((id) => id !== kid.id));
+                  }
+                }}
+              />
+              {kid.name} (Room: {kid.room_name})
+            </div>
+          ))}
+        </div>
+        <div>
+          <label>Action:</label>
+          <select value={action} onChange={(e) => setAction(e.target.value)}>
+            <option value="in">Sign In</option>
+            <option value="out">Sign Out</option>
+          </select>
+        </div>
+        <button type="submit">Submit</button>
+      </form>
     </div>
   );
 };
