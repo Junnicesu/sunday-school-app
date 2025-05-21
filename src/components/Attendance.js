@@ -13,7 +13,7 @@ const Attendance = () => {
   // Fetch rooms on component mount
   useEffect(() => {
     axios
-      .get('http://localhost:3000/rooms')
+      .get(`${process.env.REACT_APP_SUNDAYSCHOOL_BACKEND_URL}/rooms`)
       .then((response) => {
         setRooms(response.data);
         setLoading(false);
@@ -30,7 +30,7 @@ const Attendance = () => {
 
     const fetchAttendance = async () => {
       try {
-      const response = await axios.get(`http://localhost:3000/attendance/${roomId}`, { withCredentials: true });
+      const response = await axios.get(`${process.env.REACT_APP_SUNDAYSCHOOL_BACKEND_URL}/attendance/${roomId}`, { withCredentials: true });
       setAttendance(response.data);
         setError('');
       } catch (error) {

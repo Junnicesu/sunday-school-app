@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { QrReader } from 'react-qr-reader';
+// import { QrReader } from 'react-qr-reader';
 
 const ParentDashboard = () => {
     const [contactNumber, setContactNumber] = useState(localStorage.getItem('contactNumber') || '');
@@ -21,7 +21,7 @@ const ParentDashboard = () => {
 
     const fetchKids = async () => {
         try {
-            const response = await axios.get(`http://localhost:3000/kids?contact_number=${contactNumber}`);
+            const response = await axios.get(`${process.env.REACT_APP_SUNDAYSCHOOL_BACKEND_URL}/kids?contact_number=${contactNumber}`);
             setKids(response.data);
         } catch (error) {
             if (error.response?.status === 404) {
@@ -37,7 +37,7 @@ const ParentDashboard = () => {
             const [_, roomId, __, action] = data.split(':'); // e.g., "room:1:action:in"
             setQrData({ room_id: roomId, action });
             try {
-                const response = await axios.get(`http://localhost:3000/kids-for-room`, {
+                const response = await axios.get(`${process.env.REACT_APP_SUNDAYSCHOOL_BACKEND_URL}/kids-for-room`, {
                     params: { contact_number: contactNumber, room_id: roomId }
                 });
                 setRoomKids(response.data);
@@ -64,7 +64,7 @@ const ParentDashboard = () => {
             return;
         }
         try {
-            const response = await axios.post('http://localhost:3000/sign', {
+            const response = await axios.post('${process.env.REACT_APP_SUNDAYSCHOOL_BACKEND_URL}/sign', {
                 caregiver_contact: contactNumber,
                 room_id: qrData.room_id,
                 kid_ids: selectedKids,
@@ -102,14 +102,6 @@ const ParentDashboard = () => {
                 </ul>
             )}
             <h3>Scan Room QR Code</h3>
-            {!qrData && (
-                <QrReader
-                    delay={300}
-                    onError={handleError}
-                    onScan={handleScan}
-                    style={{ width: '100%', maxWidth: '300px' }}
-                />
-            )}
             {qrData && roomKids.length > 0 && (
                 <div>
                     <h4>Select Kids to Sign {qrData.action === 'in' ? 'In' : 'Out'} of {roomKids[0].room_name}</h4>

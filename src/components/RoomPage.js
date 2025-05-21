@@ -20,7 +20,7 @@ const RoomPage = () => {
 
     // Fetch kids for this room and caregiver
     axios
-      .get('http://localhost:3000/kids-for-room', {
+      .get('${process.env.REACT_APP_SUNDAYSCHOOL_BACKEND_URL}/kids-for-room', {
         params: { contact_number: caregiverContact, room_id: roomId },
       })
       .then((response) => {
@@ -35,7 +35,7 @@ const RoomPage = () => {
 
   const handleSign = async (kidId, action) => {
     try {
-      await axios.post('http://localhost:3000/sign', {
+      await axios.post(`${process.env.REACT_APP_SUNDAYSCHOOL_BACKEND_URL}/sign`, {
         caregiver_contact: caregiverContact, // Include caregiver_contact
         room_id: roomId,
         kid_ids: [kidId], // Send as array to match backend expectation
@@ -43,7 +43,7 @@ const RoomPage = () => {
       });
       alert(`Kid successfully signed ${action}`);
       // Refresh the kids list
-      const response = await axios.get('http://localhost:3000/kids-for-room', {
+      const response = await axios.get(`${process.env.REACT_APP_SUNDAYSCHOOL_BACKEND_URL}/kids-for-room`, {
         params: { contact_number: caregiverContact, room_id: roomId },
       });
       setKids(response.data);

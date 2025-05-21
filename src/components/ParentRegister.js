@@ -25,7 +25,7 @@ const ParentRegister = () => {
 
     // Fetch rooms from backend
     axios
-      .get('http://localhost:3000/rooms')
+      .get(`${process.env.REACT_APP_SUNDAYSCHOOL_BACKEND_URL}/rooms`)
       .then((response) => {
         setRooms(response.data);
         setLoading(false);
@@ -42,7 +42,7 @@ const ParentRegister = () => {
     setSuccess('');
 
     try {
-      const response = await axios.post('http://localhost:3000/register', {
+      const response = await axios.post(`${process.env.REACT_APP_SUNDAYSCHOOL_BACKEND_URL}/register`, {
         caregiver_name: caregiverName,
         caregiver_contact: caregiverContact,
         kid_name: kidName,

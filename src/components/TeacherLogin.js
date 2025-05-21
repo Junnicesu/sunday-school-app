@@ -10,7 +10,7 @@ const TeacherLogin = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:3000/teacher/login', { username, password }, { withCredentials: true });
+      await axios.post(`${process.env.REACT_APP_SUNDAYSCHOOL_BACKEND_URL}/teacher/login`, { username, password }, { withCredentials: true });
       navigate('/teacher/attendance');
     } catch (error) {
       alert(error.response?.data?.error || 'Login failed');

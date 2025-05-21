@@ -21,7 +21,7 @@ const SignForm = () => {
 
     // Fetch rooms and kids (example)
     axios
-      .get('http://localhost:3000/kids', {
+      .get(`${process.env.REACT_APP_SUNDAYSCHOOL_BACKEND_URL}/kids`, {
         params: { contact_number: caregiverContact },
       })
       .then((response) => {
@@ -42,7 +42,7 @@ const SignForm = () => {
     }
 
     try {
-      const response = await axios.post('http://localhost:3000/sign', {
+      const response = await axios.post(`${process.env.REACT_APP_SUNDAYSCHOOL_BACKEND_URL}/sign`, {
         caregiver_contact: caregiverContact,
         room_id: roomId,
         kid_ids: selectedKids,
