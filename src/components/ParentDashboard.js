@@ -64,7 +64,7 @@ const ParentDashboard = () => {
             return;
         }
         try {
-            const response = await axios.post('${process.env.REACT_APP_SUNDAYSCHOOL_BACKEND_URL}/sign', {
+            const response = await axios.post(`${process.env.REACT_APP_SUNDAYSCHOOL_BACKEND_URL}/sign`, {
                 caregiver_contact: contactNumber,
                 room_id: qrData.room_id,
                 kid_ids: selectedKids,

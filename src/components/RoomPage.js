@@ -20,7 +20,7 @@ const RoomPage = () => {
 
     // Fetch kids for this room and caregiver
     axios
-      .get('${process.env.REACT_APP_SUNDAYSCHOOL_BACKEND_URL}/kids-for-room', {
+      .get(`${process.env.REACT_APP_SUNDAYSCHOOL_BACKEND_URL}/kids-for-room`, {
         params: { contact_number: caregiverContact, room_id: roomId },
       })
       .then((response) => {
