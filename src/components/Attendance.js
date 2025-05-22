@@ -30,8 +30,8 @@ const Attendance = () => {
 
     const fetchAttendance = async () => {
       try {
-      const response = await axios.get(`${process.env.REACT_APP_SUNDAYSCHOOL_BACKEND_URL}/attendance/${roomId}`, { withCredentials: true });
-      setAttendance(response.data);
+        const response = await axios.get(`${process.env.REACT_APP_SUNDAYSCHOOL_BACKEND_URL}/attendance/${roomId}`, { withCredentials: true });
+        setAttendance(response.data);
         setError('');
       } catch (error) {
         setError(error.response?.data?.error || 'Failed to fetch attendance');
@@ -71,34 +71,42 @@ const Attendance = () => {
       </div>
 
       {roomId && attendance.length > 0 ? (
-        <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '20px' }}>
-          <thead>
-            <tr>
-              <th style={{ border: '1px solid #ddd', padding: '8px' }}>Kid Name</th>
-              <th style={{ border: '1px solid #ddd', padding: '8px' }}>Caregiver Name</th>
-              <th style={{ border: '1px solid #ddd', padding: '8px' }}>Caregiver Contact</th>
-              <th style={{ border: '1px solid #ddd', padding: '8px' }}>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {attendance.map((kid) => (
-              <tr key={kid.id}>
-                <td style={{ border: '1px solid #ddd', padding: '8px' }}>{kid.kid_name}</td>
-                <td style={{ border: '1px solid #ddd', padding: '8px' }}>{kid.caregiver_name || 'N/A'}</td>
-                <td style={{ border: '1px solid #ddd', padding: '8px' }}>
-                  {kid.caregiver_contact ? (
-                    <a href={`tel:${kid.caregiver_contact}`}>{kid.caregiver_contact}</a>
-                  ) : (
-                    'N/A'
-                  )}
-                </td>
-                <td style={{ border: '1px solid #ddd', padding: '8px' }}>
-                  {kid.last_action === 'in' ? 'Signed In' : kid.last_action === 'out' ? 'Signed Out' : 'Not Recorded'}
-                </td>
+        <div>
+          <div>
+            <a href={`${process.env.REACT_APP_SUNDAYSCHOOL_BACKEND_URL}/qr/${roomId}`} target="_blank" rel="noopener noreferrer">
+              QR Code for Room {roomId}
+            </a>
+          </div>
+          <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '20px' }}>
+            <thead>
+              <tr>
+                <th style={{ border: '1px solid #ddd', padding: '8px' }}>Kid Name</th>
+                <th style={{ border: '1px solid #ddd', padding: '8px' }}>Caregiver Name</th>
+                <th style={{ border: '1px solid #ddd', padding: '8px' }}>Caregiver Contact</th>
+                <th style={{ border: '1px solid #ddd', padding: '8px' }}>Status</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {attendance.map((kid) => (
+                <tr key={kid.id}>
+                  <td style={{ border: '1px solid #ddd', padding: '8px' }}>{kid.kid_name}</td>
+                  <td style={{ border: '1px solid #ddd', padding: '8px' }}>{kid.caregiver_name || 'N/A'}</td>
+                  <td style={{ border: '1px solid #ddd', padding: '8px' }}>
+                    {kid.caregiver_contact ? (
+                      <a href={`tel:${kid.caregiver_contact}`}>{kid.caregiver_contact}</a>
+                    ) : (
+                      'N/A'
+                    )}
+                  </td>
+                  <td style={{ border: '1px solid #ddd', padding: '8px' }}>
+                    {kid.last_action === 'in' ? 'Signed In' : kid.last_action === 'out' ? 'Signed Out' : 'Not Recorded'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
       ) : roomId ? (
         <p>No kids found for this room.</p>
       ) : null}
