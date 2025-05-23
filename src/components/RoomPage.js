@@ -38,12 +38,12 @@ const RoomPage = () => {
       await axios.post(`${process.env.REACT_APP_SUNDAYSCHOOL_BACKEND_URL}/sign`, {
         caregiver_contact: caregiverContact, // Include caregiver_contact
         room_id: roomId,
-        kid_ids: [kidId], // Send as array to match backend expectation
+        kid_ids: [kidId],
         action,
       });
       alert(`Kid successfully signed ${action}`);
       // Refresh the kids list
-      const response = await axios.get(`${process.env.REACT_APP_SUNDAYSCHOOL_BACKEND_URL}/kids-for-room`, {
+      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/kids-for-room`, {
         params: { contact_number: caregiverContact, room_id: roomId },
       });
       setKids(response.data);
@@ -52,22 +52,43 @@ const RoomPage = () => {
     }
   };
 
+  const handleRegisterKid = () => {
+    // Navigate to the registration page with the current roomId as a query parameter
+    navigate(`/parent/register`);
+  };
+
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
 
   return (
     <div>
       <h2>Room {roomId}</h2>
-      {kids.map((kid) => (
-        <div key={kid.id}>
-          {kid.name} - Status: {kid.last_action || 'Not signed in'}
-          <button
-            onClick={() => handleSign(kid.id, kid.last_action === 'in' ? 'out' : 'in')}
-          >
-            {kid.last_action === 'in' ? 'Sign Out' : 'Sign In'}
-          </button>
+      {kids.length > 0 ? (
+        kids.map((kid) => (
+          <div key={kid.id}>
+            {kid.name} - Status: {kid.last_action || 'Not signed in'}
+            <button
+              onClick={() => handleSign(kid.id, kid.last_action === 'in' ? 'out' : 'in')}
+            >
+              {kid.last_action === 'in' ? 'Sign Out' : 'Sign In'}
+            </button>
+          </div>
+        ))
+      ) : (
+        <div>
+          <p>No kids are registered for this room under your contact.</p>
+          <p>
+            Would you like to{' '}
+            <button
+              onClick={handleRegisterKid}
+              style={{ color: 'blue', textDecoration: 'underline', border: 'none', background: 'none', cursor: 'pointer' }}
+            >
+              register a kid for Room {roomId}
+            </button>
+            ?
+          </p>
         </div>
-      ))}
+      )}
     </div>
   );
 };
