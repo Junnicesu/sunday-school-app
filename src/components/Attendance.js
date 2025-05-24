@@ -38,7 +38,6 @@ const Attendance = () => {
       }
     };
 
-    // Fetch immediately
     fetchAttendance();
 
     // Set up polling every 10 seconds
@@ -70,43 +69,95 @@ const Attendance = () => {
         </select>
       </div>
 
-      {roomId && attendance.length > 0 ? (
-        <div>
-          <div>
-            <a href={`${process.env.REACT_APP_SUNDAYSCHOOL_BACKEND_URL}/qr/${roomId}`} target="_blank" rel="noopener noreferrer">
-              QR Code for Room {roomId}
-            </a>
-          </div>
-          <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '20px' }}>
-            <thead>
-              <tr>
-                <th style={{ border: '1px solid #ddd', padding: '8px' }}>Kid Name</th>
-                <th style={{ border: '1px solid #ddd', padding: '8px' }}>Caregiver Name</th>
-                <th style={{ border: '1px solid #ddd', padding: '8px' }}>Caregiver Contact</th>
-                <th style={{ border: '1px solid #ddd', padding: '8px' }}>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {attendance.map((kid) => (
-                <tr key={kid.id}>
-                  <td style={{ border: '1px solid #ddd', padding: '8px' }}>{kid.kid_name}</td>
-                  <td style={{ border: '1px solid #ddd', padding: '8px' }}>{kid.caregiver_name || 'N/A'}</td>
-                  <td style={{ border: '1px solid #ddd', padding: '8px' }}>
-                    {kid.caregiver_contact ? (
-                      <a href={`tel:${kid.caregiver_contact}`}>{kid.caregiver_contact}</a>
-                    ) : (
-                      'N/A'
-                    )}
-                  </td>
-                  <td style={{ border: '1px solid #ddd', padding: '8px' }}>
-                    {kid.last_action === 'in' ? 'Signed In' : kid.last_action === 'out' ? 'Signed Out' : 'Not Recorded'}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {roomId && (
+        <div style={{ marginTop: '10px', marginBottom: '10px' }}>
+          <a
+            href={`${process.env.REACT_APP_SUNDAYSCHOOL_BACKEND_URL}/qr/${roomId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: '#007bff', textDecoration: 'underline' }}
+          >
+            View QR Code for Room {rooms.find((room) => room.id === parseInt(roomId))?.name || roomId}
+          </a>
         </div>
+      )}
 
+      {roomId && attendance.length > 0 ? (
+        <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '20px' }}>
+          <thead>
+            <tr>
+              <th style={{ border: '1px solid #ddd', padding: '8px' }}>Kid Name</th>
+              <th style={{ border: '1px solid #ddd', padding: '8px' }}>Status</th>
+              <th style={{ border: '1px solid #ddd', padding: '8px' }}>Signed In By</th>
+              <th style={{ border: '1px solid #ddd', padding: '8px' }}>Signed Out By</th>
+            </tr>
+          </thead>
+          <tbody>
+            {attendance.map((kid) => (
+              <tr key={kid.id}>
+                <td style={{ border: '1px solid #ddd', padding: '8px' }}>{kid.kid_name}</td>
+                <td style={{ border: '1px solid #ddd', padding: '8px' }}>
+                  {kid.last_action === 'in' ? 'Signed In' : kid.last_action === 'out' ? 'Signed Out' : 'Not Recorded'}
+                </td>
+                <td style={{ border: '1px solid #ddd', padding: '8px' }}>
+                  {kid.last_signin_caregiver_name ? (
+                    <>
+                      <a
+                        href={`tel:${kid.last_signin_caregiver_contact || ''}`}
+                        style={{ marginRight: '10px', color: '#007bff', textDecoration: 'none' }}
+                      >
+                        {kid.last_signin_caregiver_name}
+                      </a>
+                      <a
+                        href={`sms:${kid.last_signin_caregiver_contact || ''}`}
+                        style={{ color: '#007bff', textDecoration: 'none' }}
+                      >
+                        [...]
+                      </a>
+                    </>
+                  ) : kid.last_caregiver_name ? (
+                    <>
+                      <a
+                        href={`tel:${kid.caregiver_contact || ''}`}
+                        style={{ marginRight: '10px', color: '#007bff', textDecoration: 'none' }}
+                      >
+                        {kid.last_caregiver_name}
+                      </a>
+                      <a
+                        href={`sms:${kid.caregiver_contact || ''}`}
+                        style={{ color: '#007bff', textDecoration: 'none' }}
+                      >
+                        [...]
+                      </a>
+                    </>
+                  ) : (
+                    'N/A'
+                  )}
+                </td>
+                <td style={{ border: '1px solid #ddd', padding: '8px' }}>
+                  {kid.last_signout_caregiver_name ? (
+                    <>
+                      <a
+                        href={`tel:${kid.last_signout_caregiver_contact || ''}`}
+                        style={{ marginRight: '10px', color: '#007bff', textDecoration: 'none' }}
+                      >
+                        {kid.last_signout_caregiver_name}
+                      </a>
+                      <a
+                        href={`sms:${kid.last_signout_caregiver_contact || ''}`}
+                        style={{ color: '#007bff', textDecoration: 'none' }}
+                      >
+                        [...]
+                      </a>
+                    </>
+                  ) : (
+                    'N/A'
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       ) : roomId ? (
         <p>No kids found for this room.</p>
       ) : null}
