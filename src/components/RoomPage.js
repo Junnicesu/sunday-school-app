@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 const RoomPage = () => {
@@ -63,6 +63,7 @@ const RoomPage = () => {
   return (
     <div>
       <h2>Room {roomId}</h2>
+      {caregiverContact && <Link to="/parent/dashboard">Go to Dashboard</Link>}
       {kids.length > 0 ? (
         kids.map((kid) => (
           <div key={kid.id}>

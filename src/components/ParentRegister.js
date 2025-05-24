@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { Link, useLocation } from 'react-router-dom';
 
 const ParentRegister = () => {
+  const location = useLocation();
   const [caregiverName, setCaregiverName] = useState('');
   const [caregiverContact, setCaregiverContact] = useState('');
   const [kidName, setKidName] = useState('');
@@ -11,9 +13,17 @@ const ParentRegister = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(true);
+  const [isLinking, setIsLinking] = useState(false);
 
   // Load caregiver data from localStorage on component mount
   useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const familyCodeParam = params.get('family_code');
+    if (familyCodeParam) {
+      setFamilyCode(familyCodeParam);
+      setIsLinking(true);
+    }
+
     const storedCaregiverName = localStorage.getItem('caregiver_name');
     const storedCaregiverContact = localStorage.getItem('caregiver_contact');
     if (storedCaregiverName) {
@@ -34,7 +44,7 @@ const ParentRegister = () => {
         setError(error.response?.data?.error || 'Failed to fetch rooms');
         setLoading(false);
       });
-  }, []);
+  }, [location.search]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -50,7 +60,6 @@ const ParentRegister = () => {
         family_code: familyCode,
       });
 
-      // Save caregiver info to localStorage
       localStorage.setItem('caregiver_contact', caregiverContact);
       localStorage.setItem('caregiver_name', caregiverName);
       if (response.data.family_code) {
@@ -70,65 +79,86 @@ const ParentRegister = () => {
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
 
+  const storedCaregiverContact = localStorage.getItem('caregiver_contact');
+  const showDashboardLink = caregiverContact || storedCaregiverContact;
+
   return (
     <div>
       <h2>Parent Registration</h2>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Caregiver Name:</label>
-          <input
-            type="text"
-            value={caregiverName}
-            onChange={(e) => setCaregiverName(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label>Caregiver Contact:</label>
-          <input
-            type="text"
-            value={caregiverContact}
-            onChange={(e) => setCaregiverContact(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label>Kid Name:</label>
-          <input
-            type="text"
-            value={kidName}
-            onChange={(e) => setKidName(e.target.value)}
-          />
-        </div>
-        <div>
-          <label>Room:</label>
-          <select
-            value={roomId}
-            onChange={(e) => setRoomId(e.target.value)}
-            required
-          >
-            <option value="">Select a room</option>
-            {rooms.map((room) => (
-              <option key={room.id} value={room.id}>
-                {room.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label>Family Code (if linking to existing kid):</label>
-          <input
-            type="text"
-            value={familyCode}
-            onChange={(e) => setFamilyCode(e.target.value)}
-          />
-        </div>
-        <button type="submit">Register</button>
-      </form>
+      {showDashboardLink && (
+        <Link
+          to={
+            caregiverContact
+              ? `/parent/dashboard?contact=${encodeURIComponent(caregiverContact)}`
+              : '/parent/dashboard'
+          }
+        >
+          Go to Dashboard with number: {caregiverContact || storedCaregiverContact}
+        </Link>
+      )}
+      <div>
+        <label>Caregiver Name:</label>
+        <input
+          type="text"
+          value={caregiverName}
+          onChange={(e) => setCaregiverName(e.target.value)}
+          placeholder="(e.g., John Doe)"
+          required
+        />
+      </div>
+      <div>
+        <label>Caregiver Contact:</label>
+        <input
+          type="text"
+          value={caregiverContact}
+          onChange={(e) => setCaregiverContact(e.target.value)}
+          placeholder="(e.g., 1234567890)"
+          required
+        />
+      </div>
+      <div>
+        <label>Kid Name:</label>
+        <input
+          type="text"
+          value={kidName}
+          onChange={(e) => setKidName(e.target.value)}
+          placeholder="(e.g., Jane Doe)"
+          disabled={isLinking}
+          required
+        />
+      </div>
+      <div>
+        <label>Room:</label>
+        <select
+          value={roomId}
+          onChange={(e) => setRoomId(e.target.value)}
+          disabled={isLinking}
+          required={!isLinking}
+        >
+          <option value="">Select a room</option>
+          {rooms.map((room) => (
+            <option key={room.id} value={room.id}>
+              {room.name}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div>
+        <label>Family Code (if linking):</label>
+        <input
+          type="text"
+          value={familyCode}
+          onChange={(e) => setFamilyCode(e.target.value)}
+          placeholder="(e.g., 45b16c2e)"
+          disabled={roomId !== ''}
+        />
+      </div>
+      <button onClick={handleSubmit}>Register</button>
       {success && <p style={{ color: 'green' }}>{success}</p>}
       {error && <p style={{ color: 'red' }}>{error}</p>}
     </div>
   );
 };
+
 
 export default ParentRegister;
