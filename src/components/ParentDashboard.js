@@ -68,6 +68,24 @@ const ParentDashboard = () => {
     }
   };
 
+  const shareLink = (familyCode) => {
+    const link = generateShareLink(familyCode);
+    if (navigator.share) {
+      navigator.share({
+        title: 'Register Kid',
+        text: 'Use this link to register your kid with the family code.',
+        url: link,
+      })
+        .then(() => console.log('Link shared successfully'))
+        .catch((err) => {
+          console.error('Share failed:', err);
+          copyToClipboard(link); // Fallback to clipboard if share fails
+        });
+    } else {
+      copyToClipboard(link); // Fallback to clipboard if share API is not supported
+    }
+  };
+
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
 
@@ -101,10 +119,8 @@ const ParentDashboard = () => {
               </td>
               <td>{kid.family_code}</td>
               <td>
-                <button
-                  onClick={() => copyToClipboard(generateShareLink(kid.family_code))}
-                >
-                  Copy Share Link
+                <button onClick={() => shareLink(kid.family_code)}>
+                  Share Link
                 </button>
               </td>
             </tr>
