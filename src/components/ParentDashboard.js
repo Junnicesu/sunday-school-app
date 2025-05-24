@@ -3,33 +3,41 @@ import axios from 'axios';
 import { Link, useLocation } from 'react-router-dom';
 
 const ParentDashboard = () => {
-    const location = useLocation();
-    const [kids, setKids] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
-    const params = new URLSearchParams(location.search);
-    const urlContact = params.get('contact');
-    const caregiverContact = urlContact || localStorage.getItem('caregiver_contact');
+  const location = useLocation();
+  const [kids, setKids] = useState([]);
+  const [rooms, setRooms] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const params = new URLSearchParams(location.search);
+  const urlContact = params.get('contact');
+  const caregiverContact = urlContact || localStorage.getItem('caregiver_contact');
 
   useEffect(() => {
-    if (!caregiverContact) {
-      setError('No caregiver contact found. Please register first.');
-      setLoading(false);
-      return;
-    }
+    const fetchData = async () => {
+      try {
+        if (!caregiverContact) {
+          setError('No caregiver contact found. Please register first.');
+          setLoading(false);
+          return;
+        }
 
-    axios
-      .get(`${process.env.REACT_APP_SUNDAYSCHOOL_BACKEND_URL}/kids`, {
-        params: { contact_number: caregiverContact },
-      })
-      .then((response) => {
-        setKids(response.data);
+        // Fetch rooms
+        const roomsResponse = await axios.get(`${process.env.REACT_APP_SUNDAYSCHOOL_BACKEND_URL}/rooms`);
+        setRooms(roomsResponse.data);
+
+        // Fetch kids
+        const kidsResponse = await axios.get(`${process.env.REACT_APP_SUNDAYSCHOOL_BACKEND_URL}/kids`, {
+          params: { contact_number: caregiverContact },
+        });
+        setKids(kidsResponse.data);
         setLoading(false);
-      })
-      .catch((error) => {
-        setError(error.response?.data?.error || 'Failed to fetch kids');
+      } catch (error) {
+        setError(error.response?.data?.error || 'Failed to fetch data');
         setLoading(false);
-      });
+      }
+    };
+
+    fetchData();
   }, [caregiverContact]);
 
   const handleRoomChange = async (kidId, newRoomId) => {
@@ -45,6 +53,19 @@ const ParentDashboard = () => {
 
   const generateShareLink = (familyCode) => {
     return `${window.location.origin}/parent/register?family_code=${familyCode}`;
+  };
+
+  const copyToClipboard = (text) => {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text)
+        .then(() => alert('Link copied to clipboard!'))
+        .catch((err) => {
+          console.error('Failed to copy text: ', err);
+          alert('Failed to copy link. Please copy manually: ' + text);
+        });
+    } else {
+      alert('Clipboard API not supported. Please copy manually: ' + text);
+    }
   };
 
   if (loading) return <div>Loading...</div>;
@@ -71,16 +92,17 @@ const ParentDashboard = () => {
                   value={kid.room_id}
                   onChange={(e) => handleRoomChange(kid.id, e.target.value)}
                 >
-                  {/* Replace with actual room options from API */}
-                  <option value="1">Room 1</option>
-                  <option value="2">Room 2</option>
-                  <option value="3">Room 3</option>
+                  {rooms.map((room) => (
+                    <option key={room.id} value={room.id}>
+                      {room.name}
+                    </option>
+                  ))}
                 </select>
               </td>
               <td>{kid.family_code}</td>
               <td>
                 <button
-                  onClick={() => navigator.clipboard.writeText(generateShareLink(kid.family_code))}
+                  onClick={() => copyToClipboard(generateShareLink(kid.family_code))}
                 >
                   Copy Share Link
                 </button>
