@@ -88,6 +88,7 @@ const Attendance = () => {
             <tr>
               <th style={{ border: '1px solid #ddd', padding: '8px' }}>Kid Name</th>
               <th style={{ border: '1px solid #ddd', padding: '8px' }}>Status</th>
+              <th style={{ border: '1px solid #ddd', padding: '8px' }}>Food Allergy</th>              
               <th style={{ border: '1px solid #ddd', padding: '8px' }}>Signed In By</th>
               <th style={{ border: '1px solid #ddd', padding: '8px' }}>Signed Out By</th>
             </tr>
@@ -99,6 +100,7 @@ const Attendance = () => {
                 <td style={{ border: '1px solid #ddd', padding: '8px' }}>
                   {kid.last_action === 'in' ? 'Signed In' : kid.last_action === 'out' ? 'Signed Out' : 'Not Recorded'}
                 </td>
+                <td style={{ border: '1px solid #ddd', padding: '8px' }}>{kid.food_allergy || 'None'}</td>
                 <td style={{ border: '1px solid #ddd', padding: '8px' }}>
                   {kid.last_signin_caregiver_name ? (
                     <>

@@ -9,13 +9,14 @@ const ParentRegister = () => {
   const [kidName, setKidName] = useState('');
   const [roomId, setRoomId] = useState('');
   const [familyCode, setFamilyCode] = useState('');
+  const [hasAllergy, setHasAllergy] = useState(false);
+  const [allergyDetails, setAllergyDetails] = useState('');
   const [rooms, setRooms] = useState([]);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(true);
   const [isLinking, setIsLinking] = useState(false);
 
-  // Load caregiver data from localStorage on component mount
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const familyCodeParam = params.get('family_code');
@@ -51,6 +52,8 @@ const ParentRegister = () => {
     setError('');
     setSuccess('');
 
+    const foodAllergy = hasAllergy ? allergyDetails : null;
+
     try {
       const response = await axios.post(`${process.env.REACT_APP_SUNDAYSCHOOL_BACKEND_URL}/register`, {
         caregiver_name: caregiverName,
@@ -58,6 +61,7 @@ const ParentRegister = () => {
         kid_name: kidName,
         room_id: roomId,
         family_code: familyCode,
+        food_allergy: foodAllergy,
       });
 
       localStorage.setItem('caregiver_contact', caregiverContact);
@@ -71,16 +75,18 @@ const ParentRegister = () => {
       setKidName('');
       setRoomId('');
       setFamilyCode('');
+      setHasAllergy(false);
+      setAllergyDetails('');
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to register');
     }
   };
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error}</div>;
-
   const storedCaregiverContact = localStorage.getItem('caregiver_contact');
   const showDashboardLink = caregiverContact || storedCaregiverContact;
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
 
   return (
     <div>
@@ -153,12 +159,27 @@ const ParentRegister = () => {
           disabled={roomId !== ''}
         />
       </div>
+      <div>
+        <label>Food Allergy:</label>
+        <select value={hasAllergy ? 'Yes' : 'No'} onChange={(e) => setHasAllergy(e.target.value === 'Yes')} disabled={isLinking}>
+          <option value="No">No</option>
+          <option value="Yes">Yes</option>
+        </select>
+        {hasAllergy && (
+          <input
+            type="text"
+            value={allergyDetails}
+            onChange={(e) => setAllergyDetails(e.target.value)}
+            placeholder="Specify allergy (e.g., Peanuts, Dairy)"
+            required
+          />
+        )}
+      </div>
       <button onClick={handleSubmit}>Register</button>
       {success && <p style={{ color: 'green' }}>{success}</p>}
       {error && <p style={{ color: 'red' }}>{error}</p>}
     </div>
   );
 };
-
 
 export default ParentRegister;
